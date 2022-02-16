@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
@@ -31,7 +32,7 @@ public class SignUpActivity extends AppCompatActivity {
         // hide the bar
         getSupportActionBar().hide();
 
-        // for firebase auth***
+        // for firebase auth*****
         auth = FirebaseAuth.getInstance();
         database= FirebaseDatabase.getInstance();
         // creating progress dialog
@@ -43,31 +44,54 @@ public class SignUpActivity extends AppCompatActivity {
         binding.btnSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                progressDialog.show();
-                auth.createUserWithEmailAndPassword
-                        (binding.etEmail.getText().toString(),binding.etPassword.getText().toString()).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) { // see AuthResult implementation
-                        progressDialog.dismiss();
-                        if(task.isSuccessful()){
-                            User user = new User(binding.etUserName.getText().toString(),binding.etPassword.getText().toString(),binding.etEmail.getText().toString());
-                            String id= task.getResult().getUser().getUid();
-                            database.getReference().child("Users").child(id).setValue(user);
-                            binding.etEmail.setText("");
-                            binding.etUserName.setText("");
-                            binding.etPassword.setText("");
-                            Toast.makeText(SignUpActivity.this, "User Created Successfully, Now you can Sign in", Toast.LENGTH_SHORT).show();
+                boolean temp=false;
+                if(binding.etUserName.getText().toString().length()==0 ||binding.etPassword.getText().toString().length()==0 || binding.etEmail.getText().toString().length()==0 ){
+                    Toast.makeText(SignUpActivity.this, "Please fill up all the boxes properly", Toast.LENGTH_SHORT).show();
+
+                }
+                else{
+                    temp=true;
+                }
+                if(temp){
+                    progressDialog.show();
+                    auth.createUserWithEmailAndPassword
+                            (binding.etEmail.getText().toString(),binding.etPassword.getText().toString()).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) { // see AuthResult implementation
+                            progressDialog.dismiss();
+                            if(task.isSuccessful()){
+                                User user = new User(binding.etUserName.getText().toString(),binding.etPassword.getText().toString(),binding.etEmail.getText().toString());
+                                String id= task.getResult().getUser().getUid();
+                                database.getReference().child("Users").child(id).setValue(user);
+                                binding.etEmail.setText("");
+                                binding.etUserName.setText("");
+                                binding.etPassword.setText("");
+                                Toast.makeText(SignUpActivity.this, "User Created Successfully, Now you can Sign in", Toast.LENGTH_SHORT).show();
 
 
+                            }
+                            else{
+                                Toast.makeText(SignUpActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                progressDialog.dismiss(); // extra
+                            }
                         }
-                        else{
-                            Toast.makeText(SignUpActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                }); // binding get text
+                    }); // binding get text
+                }
+                else{
+                    Intent intent = new Intent(SignUpActivity.this,SignUpActivity.class);
+                    startActivity(intent);
+                }
 
 
 
+
+            }
+        });
+        binding.textView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(SignUpActivity.this,SignInActivity.class);
+                startActivity(intent);
             }
         });
     }
